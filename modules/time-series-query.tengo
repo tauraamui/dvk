@@ -1,6 +1,6 @@
 fmt := import("fmt")
 
-MODULE_CMD_ALIAS := "ts"
+MODULE_CMD_ALIAS := "tsq"
 
 main := func() {
     fmt.println("running")
