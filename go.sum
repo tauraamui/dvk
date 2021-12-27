@@ -8,6 +8,10 @@ github.com/mattn/go-isatty v0.0.12 h1:wuysRhFDzyxgEmMf5xjvJ2M9dZoWAXNNr5LSBS7uHX
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/tacusci/logging/v2 v2.1.1 h1:aVgYcSASKwwyRh/s++yFydbn7h4Q90dxFDIklYco0YY=
 github.com/tacusci/logging/v2 v2.1.1/go.mod h1:Hin7AeOcbJM7H8Crv8OXCugJFFK5Lo3qlhS6qpwDC2o=
+github.com/tauraamui/tengox v1.0.0 h1:xSLDvHFWorORzFX6Xf47YpCtE7d/spPlEn80vg+rmME=
+github.com/tauraamui/tengox v1.0.0/go.mod h1:EtTAFpcDiLReuWd0AH4yYbRgLB9KRXpoaBsWcAUYpIc=
+github.com/tauraamui/tengox v1.0.1 h1:7qSbgupD5VQuwNkFnpJo4fOD02qw4LrmR6Baa0BnY+M=
+github.com/tauraamui/tengox v1.0.1/go.mod h1:EtTAFpcDiLReuWd0AH4yYbRgLB9KRXpoaBsWcAUYpIc=
 golang.org/x/sys v0.0.0-20200116001909-b77594299b42/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae h1:/WDfKMnPU+m5M4xB+6x4kaepxRw6jWvR5iDRdvjHgy8=
 golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

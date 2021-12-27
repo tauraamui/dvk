@@ -1,3 +1,7 @@
 fmt := import("fmt")
 
 MODULE_CMD_ALIAS := "ts"
+
+main := func() {
+    fmt.println("running")
+}

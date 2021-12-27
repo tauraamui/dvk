@@ -8,9 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/d5/tengo/v2"
 	"github.com/d5/tengo/v2/stdlib"
 	"github.com/tacusci/logging/v2"
+	"github.com/tauraamui/tengox"
 )
 
 type Args struct {
@@ -30,7 +30,7 @@ func resolveArgs() Args {
 	return args
 }
 
-type moduleCmds map[string]*tengo.Compiled
+type moduleCmds map[string]*tengox.Compiled
 
 func loadModules(modulesDir string) moduleCmds {
 	c := moduleCmds{}
@@ -45,14 +45,19 @@ func loadModules(modulesDir string) moduleCmds {
 		if err != nil {
 			logging.Fatal(err.Error())
 		}
-		script := tengo.NewScript(fc)
+		script := tengox.NewScript(fc)
 		script.SetImports(stdlib.GetModuleMap("fmt"))
-		proc, err := script.Compile()
+		proc, err := script.CompileRun()
 		if err != nil {
 			logging.Fatal(err.Error())
 		}
 
-		proc.Run()
+		v, err := proc.CallByName("main")
+		if err != nil {
+			logging.Fatal(err.Error())
+		}
+
+		fmt.Printf("TENGO's RETURN VAL: %v\n", v)
 
 		modAlias := proc.Get("MODULE_CMD_ALIAS").String()
 
