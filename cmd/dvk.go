@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"os"
 
 	"github.com/tacusci/logging/v2"
 	"github.com/tauraamui/dvk/pkg/module"
@@ -27,7 +27,6 @@ func resolveArgs() Args {
 
 func main() {
 	args := resolveArgs()
-	fmt.Printf("ARGS: %v\n", args)
 
 	mods, err := module.LoadAllFromDir("modules")
 	if err != nil {
@@ -39,5 +38,8 @@ func main() {
 		logging.Fatal("unable to find module of alias: %s", args.Module)
 	}
 
-	fmt.Printf("%v\n", m.ExecMain())
+	logsDir := os.DirFS(args.LogsRootDirPath)
+	if err := m.ExecMain(logsDir); err != nil {
+		logging.Fatal(err.Error())
+	}
 }

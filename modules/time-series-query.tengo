@@ -1,7 +1,10 @@
 fmt := import("fmt")
 
-MODULE_CMD_ALIAS := "tsq"
+DVK_MODULE_CMD_ALIAS := "tsq" // this is a required option "param"
+DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
+DVK_SEEK_MAX := 1000 // this is an optional param, default value has not been decided yet
 
-main := func() {
+main := func(logs) {
     fmt.println("running")
+    fmt.println("LOGS LEN: ", len(logs))
 }

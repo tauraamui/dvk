@@ -27,7 +27,7 @@ func LoadAllFromDir(dir string) (Table, error) {
 			return nil, err
 		}
 
-		table[mod.Alias] = mod
+		table[mod.CmdAlias] = mod
 	}
 
 	return table, nil
