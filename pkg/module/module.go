@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"sync"
 
+	"github.com/d5/tengo/v2"
 	"github.com/d5/tengo/v2/stdlib"
 	"github.com/tacusci/logging/v2"
 	"github.com/tauraamui/tengox"
@@ -65,13 +66,25 @@ type ProcOptions struct {
 	SeekMin, SeekMax int
 }
 
-func (m *Module) ExecMain(logsDir fs.FS) error {
+func (m *Module) ExecMain(logsDir fs.FS, args []string) error {
 	logs, err := loadDirLogs(logsDir, m.SeekMin, m.SeekMax)
 	if err != nil {
 		return err
 	}
 
-	_, err = m.proc.CallByName("main", logs)
+	if mainFunc, ok := m.proc.Get("main").Object().(*tengo.CompiledFunction); ok {
+		println(mainFunc.NumParameters)
+		if 1+len(args) != mainFunc.NumParameters {
+			return fmt.Errorf("expected %d additional arguemnts", mainFunc.NumParameters-1)
+		}
+	}
+
+	modArgs := []interface{}{logs}
+	for _, a := range args {
+		modArgs = append(modArgs, a)
+	}
+
+	_, err = m.proc.CallByName("main", modArgs...)
 	return err
 }
 

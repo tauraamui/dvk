@@ -1,14 +1,21 @@
 fmt := import("fmt")
 
 DVK_MODULE_CMD_ALIAS := "tsq" // this is a required option "param"
-DVK_SEEK_MIN := 245 // this is an optional param, default value is 0
-DVK_SEEK_MAX := 250 // this is an optional param, default value has not been decided yet
+DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
+DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
 
-main := func(logs) {
-    fmt.println("running")
-    fmt.println("LOGS LEN: ", len(logs))
-
+buildTimeLookupTable := func(logs) {
+    fmt.println("Generating time indexable collection of logs")
     for ll in logs {
         fmt.println(ll)
     }
+}
+
+main := func(logs, start_date, end_date) {
+    fmt.println("Data Visualisation Kit - Time Series Query")
+    fmt.println("LOGS LEN: ", len(logs))
+    fmt.println("START DATE: ", start_date)
+    fmt.println("END DATE: ", end_date)
+
+    // buildTimeLookupTable(logs)
 }

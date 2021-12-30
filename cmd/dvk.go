@@ -1,26 +1,22 @@
 package main
 
 import (
-	"flag"
 	"os"
 
+	"github.com/jessevdk/go-flags"
 	"github.com/tacusci/logging/v2"
 	"github.com/tauraamui/dvk/pkg/module"
 )
 
-type Args struct {
-	LogsRootDirPath string
-	Module          string
+type args struct {
+	LogsRootDirPath string   `short:"l" long:"logs" description:"Location of logs to analyise" default:"logs"`
+	Module          string   `short:"m" long:"module" description:"Module of given alias to run"`
+	Args            []string `short:"a" long:"arg" description:"Argument to parse to module's entry point"`
 }
 
-func resolveArgs() Args {
-	args := Args{
-		LogsRootDirPath: "logs",
-	}
-
-	flag.StringVar(&args.LogsRootDirPath, "ldir", "logs", "location of logs to analyise")
-	flag.StringVar(&args.Module, "m", "", "define analysis method")
-	flag.Parse()
+func resolveArgs() args {
+	args := args{}
+	flags.Parse(&args)
 
 	return args
 }
@@ -39,7 +35,7 @@ func main() {
 	}
 
 	logsDir := os.DirFS(args.LogsRootDirPath)
-	if err := m.ExecMain(logsDir); err != nil {
+	if err := m.ExecMain(logsDir, args.Args); err != nil {
 		logging.Fatal(err.Error())
 	}
 }

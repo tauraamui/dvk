@@ -9,10 +9,11 @@ require (
 
 require (
 	github.com/fatih/color v1.10.0 // indirect
+	github.com/jessevdk/go-flags v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/tauraamui/tengox v1.0.1 // indirect
-	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
+	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
 )
 
 replace github.com/ozanh/tengox => github.com/tauraamui/tengox v0.1.0
