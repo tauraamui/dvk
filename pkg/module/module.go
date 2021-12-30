@@ -21,7 +21,7 @@ type Module struct {
 
 func New(s []byte) (*Module, error) {
 	script := tengox.NewScript(s)
-	script.SetImports(stdlib.GetModuleMap("fmt"))
+	script.SetImports(stdlib.GetModuleMap("fmt", "times"))
 
 	proc, err := script.CompileRun()
 	if err != nil {
