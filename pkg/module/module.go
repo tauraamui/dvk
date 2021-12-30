@@ -3,6 +3,7 @@ package module
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"sync"
@@ -46,7 +47,7 @@ func extractOptsFromProc(proc *tengox.Compiled) (ProcOptions, error) {
 
 	opts.CmdAlias = modAlias.String()
 	opts.SeekMin = 0
-	opts.SeekMax = 1000
+	opts.SeekMax = 100000
 
 	if seekMin := proc.Get("DVK_SEEK_MIN"); !seekMin.IsUndefined() {
 		opts.SeekMin = seekMin.Int()
@@ -82,6 +83,28 @@ func loadDirLogs(logsDir fs.FS, min, max int) ([]interface{}, error) {
 
 	logs := []interface{}{}
 	readEntryFiles(logsDir, entries, &logs)
+
+	if min < 0 {
+		return nil, fmt.Errorf("seek min %d must be greater than 0", min)
+	}
+
+	if max < 0 {
+		return nil, fmt.Errorf("seek max %d must be greater than 0", max)
+	}
+
+	if min == max {
+		return nil, fmt.Errorf("seek min %d and seek max %d must not equal", min, max)
+	}
+
+	if min > max {
+		return nil, fmt.Errorf("seek min %d cannot be more than seek max %d", min, max)
+	}
+
+	if min < len(logs) {
+		if max <= len(logs) {
+			logs = logs[min:max]
+		}
+	}
 
 	return logs, nil
 }
