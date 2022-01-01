@@ -66,16 +66,29 @@ type ProcOptions struct {
 	SeekMin, SeekMax int
 }
 
-func (m *Module) ExecMain(logsDir fs.FS, args []string) error {
+func (m *Module) ExecMain(logsDir fs.FS, args []string, optArgs map[string]string) error {
 	logs, err := loadDirLogs(logsDir, m.SeekMin, m.SeekMax)
 	if err != nil {
 		return err
 	}
 
-	if mainFunc, ok := m.proc.Get("main").Object().(*tengo.CompiledFunction); ok {
-		println(mainFunc.NumParameters)
+	modArgs, err := resolveModArgs(logs, args, m.proc)
+	if err != nil {
+		return err
+	}
+
+	if err := loadOptionalArgs(optArgs, m.proc); err != nil {
+		return err
+	}
+
+	_, err = m.proc.CallByName("main", modArgs...)
+	return err
+}
+
+func resolveModArgs(logs []interface{}, args []string, proc *tengox.Compiled) ([]interface{}, error) {
+	if mainFunc, ok := proc.Get("main").Object().(*tengo.CompiledFunction); ok {
 		if 1+len(args) != mainFunc.NumParameters {
-			return fmt.Errorf("expected %d additional arguemnts", mainFunc.NumParameters-1)
+			return nil, fmt.Errorf("expected %d additional arguemnts", mainFunc.NumParameters-1)
 		}
 	}
 
@@ -84,8 +97,16 @@ func (m *Module) ExecMain(logsDir fs.FS, args []string) error {
 		modArgs = append(modArgs, a)
 	}
 
-	_, err = m.proc.CallByName("main", modArgs...)
-	return err
+	return modArgs, nil
+}
+
+func loadOptionalArgs(optArgs map[string]string, proc *tengox.Compiled) error {
+	for k, v := range optArgs {
+		if err := proc.Set(k, v); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func loadDirLogs(logsDir fs.FS, min, max int) ([]interface{}, error) {

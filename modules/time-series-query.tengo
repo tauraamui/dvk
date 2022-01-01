@@ -4,6 +4,11 @@ times := import("times")
 DVK_MODULE_CMD_ALIAS := "tsq" // this is a required option "param"
 DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
+OPT_TIME_FORMAT := "ansic"
+
+time_formats := {
+    "ansic": times.format_ansic
+}
 
 buildTimeLookupTable := func(logs) {
     fmt.println("Generating time indexable collection of logs")
@@ -14,11 +19,8 @@ buildTimeLookupTable := func(logs) {
 
 main := func(logs, start_date, end_date) {
     fmt.println("Data Visualisation Kit - Time Series Query")
-    fmt.println("LOGS LEN: ", len(logs))
-    fmt.println("START DATE: ", start_date)
-    fmt.println("END DATE: ", end_date)
 
-    t := times.parse(times.format_ansic, "Thu Jun 09 06:07:16 2005")
+    t := times.parse(time_formats[OPT_TIME_FORMAT], "Thu Jun 09 06:07:16 2005")
     fmt.println(times.time_string(t))
     // buildTimeLookupTable(logs)
 }
