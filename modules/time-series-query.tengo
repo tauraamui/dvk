@@ -7,7 +7,21 @@ DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been 
 OPT_TIME_FORMAT := "ansic"
 
 time_formats := {
-    "ansic": times.format_ansic
+    "ansic": times.format_ansic,             // "Mon Jan _2 15:04:05 2006"
+    "unix": times.format_unix_date,          // "Mon Jan _2 15:04:05 MST 2006"
+    "ruby": times.format_ruby_date,          // "Mon Jan 02 15:04:05 -0700 2006"
+    "rfc822": times.format_rfc822,           // "02 Jan 06 15:04 MST"
+    "rfc822z": times.format_rfc822z,         // "02 Jan 06 15:04 -0700"
+    "rfc850": times.format_rfc850,           // "Monday, 02-Jan-06 15:04:05 MST"
+    "rfc1123": times.format_rfc1123,         // "Mon, 02 Jan 2006 15:04:05 MST"
+    "rfc1123z": times.format_rfc1123z,       // "Mon, 02 Jan 2006 15:04:05 -0700"
+    "rfc3339": times.format_rfc3339,         // "2006-01-02T15:04:05Z07:00"
+    "rfc3339n": times.format_rfc3339_nano,   // "2006-01-02T15:04:05.999999999Z07:00"
+    "kitchen": times.format_kitchen,         // "3:04PM"
+    "stamp": times.format_stamp,             // "Jan _2 15:04:05"
+    "stampmilli": times.format_stamp_milli,  // "Jan _2 15:04:05.000"
+    "stampmicro": times.format_stamp_micro,  // "Jan _2 15:04:05.000000"
+    "stampn": times.format_stamp_nano        // "Jan _2 15:04:05.000000000"
 }
 
 buildTimeLookupTable := func(logs) {
