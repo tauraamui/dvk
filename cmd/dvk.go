@@ -28,7 +28,7 @@ func extractOptArgs(args []string) map[string]string {
 	for _, oa := range args {
 		s := strings.Split(oa, "=")
 		if len(s) > 1 {
-			optArgs["OPT_"+strings.ReplaceAll(strings.ToUpper(s[0]), "-", "_")] = s[1]
+			optArgs["DVK_OPT_"+strings.ReplaceAll(strings.ToUpper(s[0]), "-", "_")] = s[1]
 		}
 	}
 	return optArgs
