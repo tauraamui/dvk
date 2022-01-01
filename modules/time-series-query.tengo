@@ -34,6 +34,12 @@ buildTimeLookupTable := func(logs) {
 main := func(logs, start_date, end_date) {
     fmt.println("Data Visualisation Kit - Time Series Query")
 
+    format := time_formats[OPT_TIME_FORMAT]
+    if format == undefined {
+        fmt.println("unknown time format: ", OPT_TIME_FORMAT)
+        return
+    }
+
     t := times.parse(time_formats[OPT_TIME_FORMAT], "Thu Jun 09 06:07:16 2005")
     fmt.println(times.time_string(t))
     // buildTimeLookupTable(logs)
