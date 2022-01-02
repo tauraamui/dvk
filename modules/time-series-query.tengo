@@ -7,6 +7,7 @@ DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
 DVK_OPT_LOG_TIME_FORMAT := "ansic"
 DVK_OPT_QUERY_TIME_FORMAT := "2006"
+DVK_OPT_LOG_LEVEL := "*"
 
 time_formats := {
     "ansic": times.format_ansic,             // "Mon Jan _2 15:04:05 2006"
@@ -28,14 +29,24 @@ time_formats := {
 
 regexp_within_braces := `\[[^]]*\]` // matches all characters between '[' ']'
 
-find_log_time := func(l, u) {
-    m := text.re_find(regexp_within_braces, l, 1)
-    if m != undefined && len(m) == 1 && len(m[0]) == 1 {
-        log_time := m[0][0].text
-        log_time = text.trim_suffix(text.trim_prefix(log_time, "["), "]")
-        return times.parse(time_formats[DVK_OPT_LOG_TIME_FORMAT], log_time)
+find_log_time_and_level := func(l, ut, ull) {
+    time_and_level := { time: ut, level: ull }
+
+    m := text.re_find(regexp_within_braces, l, 2)
+    if m != undefined && len(m) >= 1 {
+        if len(m[0]) == 1 {
+            log_time := m[0][0].text
+            log_time = text.trim_suffix(text.trim_prefix(log_time, "["), "]")
+            time_and_level.time = times.parse(time_formats[DVK_OPT_LOG_TIME_FORMAT], log_time)
+        }
+
+        if len(m[1]) == 1 {
+            log_level := m[1][0].text
+            log_level = text.trim_suffix(text.trim_prefix(log_level, "["), "]")
+            time_and_level.level = log_level
+        }
     }
-    return u
+    return time_and_level
 }
 
 main := func(logs, start_date, end_date) {
@@ -51,15 +62,19 @@ main := func(logs, start_date, end_date) {
     end_time := times.parse(DVK_OPT_QUERY_TIME_FORMAT, end_date)
 
     last_found_time := undefined
+    last_found_level := undefined
     for l in logs {
-        t := find_log_time(l, last_found_time)
-        last_found_time = t
-        if t == undefined {
+        tll := find_log_time_and_level(l, last_found_time, last_found_level)
+        last_found_time = tll.time
+        last_found_level = tll.level
+        if tll.time == undefined {
             continue
         }
 
-        if times.after(t, start_time) && times.before(t, end_time) {
-            fmt.println(l)
+        if DVK_OPT_LOG_LEVEL == "*" || DVK_OPT_LOG_LEVEL == tll.level {
+            if times.after(tll.time, start_time) && times.before(tll.time, end_time) {
+                fmt.println(l)
+            }
         }
     }
 }
