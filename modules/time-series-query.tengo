@@ -29,24 +29,50 @@ time_formats := {
 
 regexp_within_braces := `\[[^]]*\]` // matches all characters between '[' ']'
 
-find_log_time_and_level := func(l, ut, ull) {
-    time_and_level := { time: ut, level: ull }
+strip_meta_data := func(log_line) {
+    meta_data := { time: undefined, level: undefined, full_log: log_line, log_text: undefined }
 
-    m := text.re_find(regexp_within_braces, l, 2)
-    if m != undefined && len(m) >= 1 {
-        if len(m[0]) == 1 {
-            log_time := m[0][0].text
-            log_time = text.trim_suffix(text.trim_prefix(log_time, "["), "]")
-            time_and_level.time = times.parse(time_formats[DVK_OPT_LOG_TIME_FORMAT], log_time)
+    matches := text.re_find(regexp_within_braces, log_line, 2)
+    if matches != undefined {
+        first_match_start_index := undefined
+        first_match_end_index := undefined
+        if len(matches) >= 1 {
+            if m := matches[0]; len(m) >= 1 {
+                m = m[0]
+                first_match_start_index = m.begin
+                first_match_end_index = m.end
+                meta_data.time = text.trim_suffix(text.trim_prefix(m.text, "["), "]")
+            }
         }
 
-        if len(m[1]) == 1 {
-            log_level := m[1][0].text
-            log_level = text.trim_suffix(text.trim_prefix(log_level, "["), "]")
-            time_and_level.level = log_level
+        second_match_start_index := undefined
+        second_match_end_index := undefined
+        if len(matches) >= 2 {
+            if m := matches[1]; len(m) >= 1 {
+                m = m[0]
+                second_match_start_index = m.begin
+                second_match_end_index = m.end
+                meta_data.level = text.trim_suffix(text.trim_prefix(m.text, "["), "]")
+            }
         }
+
+
+        if first_match_start_index != undefined && first_match_end_index != undefined {
+            log_line = log_line[first_match_start_index:][first_match_end_index:]
+            if second_match_start_index != undefined && second_match_end_index != undefined {
+                second_match_start_index = second_match_start_index - first_match_end_index
+                second_match_end_index = second_match_end_index - first_match_end_index
+            }
+        }
+
+        if second_match_start_index != undefined && second_match_end_index != undefined {
+            log_line = log_line[second_match_start_index:][second_match_end_index:]
+        }
+
+        meta_data.log_text = log_line
     }
-    return time_and_level
+
+    return meta_data
 }
 
 main := func(logs, start_date, end_date) {
@@ -64,16 +90,29 @@ main := func(logs, start_date, end_date) {
     last_found_time := undefined
     last_found_level := undefined
     for l in logs {
-        tll := find_log_time_and_level(l, last_found_time, last_found_level)
-        last_found_time = tll.time
-        last_found_level = tll.level
-        if tll.time == undefined {
+        md := strip_meta_data(l)
+
+        if md.time != undefined {
+            last_found_time = md.time
+        } else {
+            md.time = last_found_time
+        }
+
+        if md.level != undefined {
+            last_found_level = md.level
+        } else {
+            md.level = last_found_level
+        }
+
+        if md.time == undefined {
             continue
         }
 
-        if DVK_OPT_LOG_LEVEL == "*" || DVK_OPT_LOG_LEVEL == tll.level {
-            if times.after(tll.time, start_time) && times.before(tll.time, end_time) {
-                fmt.println(l)
+        log_time := times.parse(format, md.time)
+
+        if DVK_OPT_LOG_LEVEL == "*" || DVK_OPT_LOG_LEVEL == md.level {
+            if times.after(log_time, start_time) && times.before(log_time, end_time) {
+                fmt.println(md.full_log)
             }
         }
     }
