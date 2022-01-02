@@ -5,9 +5,11 @@ text := import("text")
 DVK_MODULE_CMD_ALIAS := "tsq" // this is a required option "param"
 DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
-DVK_OPT_LOG_TIME_FORMAT := "ansic"
+DVK_DEFAULT_LOG_TIME_FORMAT := "ansic"
+DVK_OPT_LOG_TIME_FORMAT := DVK_DEFAULT_LOG_TIME_FORMAT
 DVK_OPT_QUERY_TIME_FORMAT := "2006"
 DVK_OPT_LOG_LEVEL := "*"
+DVK_OPT_CONTAINS_TXT := "*"
 
 time_formats := {
     "ansic": times.format_ansic,             // "Mon Jan _2 15:04:05 2006"
@@ -78,45 +80,54 @@ strip_meta_data := func(log_line) {
     return meta_data
 }
 
+build_query := func(start_date, end_date, log_level) {
+    optional_log_time_format := time_formats[DVK_OPT_LOG_TIME_FORMAT]
+    query := {
+        log_level: log_level,
+        log_time_format: optional_log_time_format != undefined ? optional_log_time_format : DVK_DEFAULT_LOG_TIME_FORMAT,
+        start_date: start_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, start_date) : undefined,
+        end_date: end_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, end_date) : undefined
+    }
+
+    query.has_time_filter = query.start_date != undefined && query.end_date != undefined
+    query.has_log_level_filter = query.log_level != undefined
+
+    return query
+}
+
 main := func(logs, start_date, end_date) {
     fmt.println("Data Visualisation Kit - Time Series Query")
 
-    format := time_formats[DVK_OPT_LOG_TIME_FORMAT]
-    if format == undefined {
-        fmt.println("unknown time format: ", DVK_OPT_LOG_TIME_FORMAT)
-        return
-    }
+    q := build_query(start_date, end_date, DVK_OPT_LOG_LEVEL)
 
-    start_time := times.parse(DVK_OPT_QUERY_TIME_FORMAT, start_date)
-    end_time := times.parse(DVK_OPT_QUERY_TIME_FORMAT, end_date)
-
-    last_found_time := undefined
-    last_found_level := undefined
     for l in logs {
-        md := strip_meta_data(l)
+        if q.has_time_filter || q.has_log_level_filter {
+            md := strip_meta_data(l)
 
-        if md.time != undefined {
-            last_found_time = md.time
-        } else {
-            md.time = last_found_time
-        }
+            if q.has_time_filter {
+                last_found_time := undefined
+                last_found_time = md.time == undefined ? last_found_time : md.time
 
-        if md.level != undefined {
-            last_found_level = md.level
-        } else {
-            md.level = last_found_level
-        }
+                if md.time == undefined {
+                    continue
+                }
 
-        if md.time == undefined {
-            continue
-        }
+                log_time := times.parse(q.log_time_format, md.time)
+                if !(times.after(log_time, q.start_date) && times.before(log_time, q.end_date)) {
+                    continue
+                }
+            }
 
-        log_time := times.parse(format, md.time)
+            if q.has_log_level_filter {
+                last_found_level := undefined
+                last_found_level = md.level == undefined ? last_found_level : md.level
 
-        if DVK_OPT_LOG_LEVEL == "*" || DVK_OPT_LOG_LEVEL == md.level {
-            if times.after(log_time, start_time) && times.before(log_time, end_time) {
-                fmt.println(md.full_log)
+                if q.log_level != md.level {
+                    continue
+                }
             }
         }
+
+        fmt.println(l)
     }
 }
