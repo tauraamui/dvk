@@ -80,16 +80,16 @@ strip_meta_data := func(log_line) {
     return meta_data
 }
 
-build_query := func(start_date, end_date, log_level) {
+build_query := func(start_date, end_date) {
     optional_log_time_format := time_formats[DVK_OPT_LOG_TIME_FORMAT]
     query := {
-        log_level: log_level,
+        log_level: DVK_OPT_LOG_LEVEL == "*" ? undefined : DVK_OPT_LOG_LEVEL,
         log_time_format: optional_log_time_format != undefined ? optional_log_time_format : DVK_DEFAULT_LOG_TIME_FORMAT,
         start_date: start_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, start_date) : undefined,
         end_date: end_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, end_date) : undefined
     }
 
-    query.has_time_filter = query.start_date != undefined && query.end_date != undefined
+    query.has_time_filter = query.start_date != undefined || query.end_date != undefined
     query.has_log_level_filter = query.log_level != undefined
 
     return query
@@ -98,7 +98,7 @@ build_query := func(start_date, end_date, log_level) {
 main := func(logs, start_date, end_date) {
     fmt.println("Data Visualisation Kit - Time Series Query")
 
-    q := build_query(start_date, end_date, DVK_OPT_LOG_LEVEL)
+    q := build_query(start_date, end_date)
 
     for l in logs {
         if q.has_time_filter || q.has_log_level_filter {
@@ -113,7 +113,11 @@ main := func(logs, start_date, end_date) {
                 }
 
                 log_time := times.parse(q.log_time_format, md.time)
-                if !(times.after(log_time, q.start_date) && times.before(log_time, q.end_date)) {
+                if q.start_date != undefined && times.before(log_time, q.start_date) {
+                    continue
+                }
+
+                if q.end_date != undefined && times.after(log_time, q.end_date) {
                     continue
                 }
             }
