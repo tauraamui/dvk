@@ -58,6 +58,9 @@ strip_meta_data := func(log_line) {
 
 
         if first_match_start_index != undefined && first_match_end_index != undefined {
+            // TODO(tauraamui): Re-think log content selecting
+            // this is too destructive and still assumes that the matches
+            // proceed the remaining log line's content, which is not certain
             log_line = log_line[first_match_start_index:][first_match_end_index:]
             if second_match_start_index != undefined && second_match_end_index != undefined {
                 second_match_start_index = second_match_start_index - first_match_end_index
