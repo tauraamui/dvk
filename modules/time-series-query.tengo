@@ -9,7 +9,7 @@ DVK_DEFAULT_LOG_TIME_FORMAT := "ansic"
 DVK_OPT_LOG_TIME_FORMAT := DVK_DEFAULT_LOG_TIME_FORMAT
 DVK_OPT_QUERY_TIME_FORMAT := "2006"
 DVK_OPT_LOG_LEVEL := "*"
-DVK_OPT_CONTAINS_TXT := "*"
+DVK_OPT_TEXT_CONTENT := "*"
 
 time_formats := {
     "ansic": times.format_ansic,             // "Mon Jan _2 15:04:05 2006"
@@ -86,11 +86,13 @@ build_query := func(start_date, end_date) {
         log_level: DVK_OPT_LOG_LEVEL == "*" ? undefined : DVK_OPT_LOG_LEVEL,
         log_time_format: optional_log_time_format != undefined ? optional_log_time_format : DVK_DEFAULT_LOG_TIME_FORMAT,
         start_date: start_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, start_date) : undefined,
-        end_date: end_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, end_date) : undefined
+        end_date: end_date != "*" ? times.parse(DVK_OPT_QUERY_TIME_FORMAT, end_date) : undefined,
+        text_content: DVK_OPT_TEXT_CONTENT == "*" ? undefined : DVK_OPT_TEXT_CONTENT
     }
 
     query.has_time_filter = query.start_date != undefined || query.end_date != undefined
     query.has_log_level_filter = query.log_level != undefined
+    query.has_text_contains_filter = query.text_content != undefined
 
     return query
 }
@@ -101,7 +103,7 @@ main := func(logs, start_date, end_date) {
     q := build_query(start_date, end_date)
 
     for l in logs {
-        if q.has_time_filter || q.has_log_level_filter {
+        if q.has_time_filter || q.has_log_level_filter || q.has_text_contains_filter {
             md := strip_meta_data(l)
 
             if q.has_time_filter {
@@ -127,6 +129,12 @@ main := func(logs, start_date, end_date) {
                 last_found_level = md.level == undefined ? last_found_level : md.level
 
                 if q.log_level != md.level {
+                    continue
+                }
+            }
+
+            if q.has_text_contains_filter {
+                if !text.contains(md.log_text, q.text_content) {
                     continue
                 }
             }
