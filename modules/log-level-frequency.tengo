@@ -32,8 +32,11 @@ main := func(logs) {
 
         cc := day_level_counts[md.level]
         day_level_counts[md.level] = cc != undefined ? cc+1 : 1
+        // FIX(tauraamui): there's some obtruse bug occurring when the counter
+        // reaches the last day's entry, despite efforts to circumvent it.
         if is_last_day := i+1 >= len(logs); is_last_day || previous_month_day != undefined && month_day > previous_month_day {
-            fmt.println("DAY: " + (month_day - (is_last_day ? 0 : 1)) + ", LEVELS: " + day_level_counts)
+            fmt.println("DAY: " + md.time + ", LEVELS: " + day_level_counts)
+            // fmt.println("DAY: " + (month_day - (is_last_day ? 0 : 1)) + ", LEVELS: " + day_level_counts)
             day_level_counts = {}
         }
 
