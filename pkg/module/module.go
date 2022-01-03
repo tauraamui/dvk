@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"strings"
 	"sync"
 
 	"github.com/d5/tengo/v2"
 	"github.com/d5/tengo/v2/stdlib"
 	"github.com/tacusci/logging/v2"
+	"github.com/tauraamui/dvk/stdlibx"
 	"github.com/tauraamui/tengox"
 )
 
@@ -21,7 +23,11 @@ type Module struct {
 
 func New(s []byte) (*Module, error) {
 	script := tengox.NewScript(s)
-	script.SetImports(stdlib.GetModuleMap("fmt", "times", "text"))
+	modMap := tengo.NewModuleMap()
+	modMap.AddMap(stdlib.GetModuleMap("fmt", "times", "text"))
+	mapStdlibModules(modMap)
+
+	script.SetImports(modMap)
 
 	proc, err := script.CompileRun()
 	if err != nil {
@@ -37,6 +43,13 @@ func New(s []byte) (*Module, error) {
 		opts,
 		proc,
 	}, nil
+}
+
+func mapStdlibModules(m *tengo.ModuleMap) {
+	for n, s := range stdlibx.Modules {
+		s = strings.Replace(s, ";;;;", "`", -1)
+		m.AddSourceModule(n, []byte(s))
+	}
 }
 
 func extractOptsFromProc(proc *tengox.Compiled) (ProcOptions, error) {

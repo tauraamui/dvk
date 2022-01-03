@@ -1,0 +1,42 @@
+fmt := import("fmt")
+times := import("times")
+metadata := import("metadata")
+
+// LLF: Log level frequency
+DVK_MODULE_CMD_ALIAS := "llf" // this is a required option "param"
+DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
+DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
+
+filter := func(l, pl, t, pt) {
+    if l == undefined && pl == undefined { return true }
+    if t == undefined && pt == undefined { return true }
+    return false
+}
+
+main := func(logs) {
+    previous_level := undefined
+    previous_time := undefined
+    previous_month_day := undefined
+
+    day_level_counts := {}
+    for i := 0; i < len(logs); i++ {
+        l := logs[i]
+        md := metadata(l)
+
+        if filter(md.level, previous_level, md.time, previous_time) { continue }
+        md.level = md.level == undefined ? previous_level : md.level; previous_level = md.level
+        md.time = md.time == undefined ? previous_time : md.time; previous_time = md.time
+
+        log_time := times.parse(times.format_ansic, md.time)
+        month_day := times.time_day(log_time)
+
+        cc := day_level_counts[md.level]
+        day_level_counts[md.level] = cc != undefined ? cc+1 : 1
+        if is_last_day := i+1 >= len(logs); is_last_day || previous_month_day != undefined && month_day > previous_month_day {
+            fmt.println("DAY: " + (month_day - (is_last_day ? 0 : 1)) + ", LEVELS: " + day_level_counts)
+            day_level_counts = {}
+        }
+
+        previous_month_day = month_day
+    }
+}
