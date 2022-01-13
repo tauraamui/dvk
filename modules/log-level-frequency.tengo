@@ -7,8 +7,24 @@ DVK_MODULE_CMD_ALIAS := "llf" // this is a required option "param"
 DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
 
+num_of_c_per_bar := func(entries, key) {
+    highest_count := 0
+    for e in entries {
+        if ec := e.counts[key]; ec > highest_count { highest_count = ec }
+    }
+    return highest_count / 100
+}
+
 render_chart := func(data) {
-    fmt.println(data)
+    cpb := num_of_c_per_bar(data.entries, "error")
+    for e in data.entries {
+        fmt.print(e.date, ": errors: ")
+        num_of_bars := e.counts["error"] / cpb
+        for i := 0; i < num_of_bars; i++ {
+            fmt.print("=")
+        }
+        fmt.println("")
+    }
 }
 
 // metadata object:
@@ -18,11 +34,16 @@ render_chart := func(data) {
 // md.log_text
 
 main := func(logs) {
-    all_counts := []
-    level_counts := {}
+    data := {
+        num_months: 0,
+        num_days: 0,
+        entries: []
+    }
 
+    entry := { counts: {} }
     last_time := undefined
-    last_date_format := undefined
+    last_date_day := undefined
+    last_date_month := undefined
     for i := 0; i < len(logs); i++ {
         l := logs[i]
         lmd := metadata(l)
@@ -30,24 +51,35 @@ main := func(logs) {
         if lmd.time == undefined || lmd.level == undefined { continue }
 
         time := times.parse(times.format_ansic, lmd.time)
-        date_format := times.time_format(time, "02Jan2006")
-        if last_date_format != undefined && last_date_format != date_format {
-            level_counts.date = last_time
-            all_counts = append(all_counts, level_counts)
-            level_counts = {}
+        date_day := times.time_day(time)
+        date_month := times.time_month(time)
+        date_year := times.time_year(time)
+
+        if date_month != last_date_month { data.num_months += 1 }
+        if date_day != last_date_day { data.num_days += 1 }
+
+        entry.day = date_day
+        entry.month = date_month
+        entry.year = date_year
+
+        if last_date_month != undefined && last_date_month != date_month {
+            entry.date = last_time
+            data.entries = append(data.entries, entry)
+            entry = { counts: {} }
         }
 
         if i == len(logs)-1 {
-            level_counts.date = time
-            all_counts = append(all_counts, level_counts)
+            entry.date = time
+            data.entries = append(data.entries, entry)
         }
 
-        lc := level_counts[lmd.level]
-        level_counts[lmd.level] = lc == undefined ? 1 : lc + 1
+        lc := entry.counts[lmd.level]
+        entry.counts[lmd.level] = lc == undefined ? 1 : lc + 1
 
         last_time = time
-        last_date_format = date_format
+        last_date_day = date_day
+        last_date_month = date_month
     }
 
-    render_chart(all_counts)
+    render_chart(data)
 }
