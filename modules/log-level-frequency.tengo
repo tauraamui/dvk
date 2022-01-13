@@ -7,47 +7,44 @@ DVK_MODULE_CMD_ALIAS := "llf" // this is a required option "param"
 DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
 
-filter := func(l, pl, t, pt) {
-    if l == undefined && pl == undefined { return true }
-    if t == undefined && pt == undefined { return true }
-    return false
-}
+// metadata object:
+// md.time
+// md.level
+// md.full_log
+// md.log_text
 
 main := func(logs) {
-    previous_level := undefined
-    previous_time := undefined
-
+    last_found_time := undefined
+    last_found_level := undefined
+    last_date_format := undefined
     day_level_counts := {}
     for i := 0; i < len(logs); i++ {
         l := logs[i]
         md := metadata(l)
 
-        if filter(md.level, previous_level, md.time, previous_time) { continue }
+        last_found_time = md.time != undefined ? md.time : last_found_time
+        last_found_level = md.level != undefined ? md.level : last_found_level
+        md.time = md.time == undefined ? last_found_time : md.time
+        md.level = last_found_level
 
-        md.level = md.level == undefined ? previous_level : md.level; previous_level = md.level
-        md.time = md.time == undefined ? previous_time : md.time; previous_time = md.time
+        date := times.parse(times.format_ansic, md.time)
+        if date == undefined { continue }
+        date = times.time_format(date, "02Jan2006")
 
-        // get next log line/peek ahead
-        nl := i+1 < len(logs) ? logs[i+1] : undefined
-        nlmd := nl != undefined ? metadata(nl) : undefined
+        dlc := day_level_counts[date]
+        day_level_counts[date] = day_level_counts[date] == undefined ? {} : dlc
+        cc := day_level_counts[date][md.level]
+        cc = cc == undefined ? 1 : cc + 1
+        day_level_counts[date][md.level] = cc
 
-        log_time := times.parse(times.format_ansic, md.time)
-        month_day := times.time_day(log_time)
-
-        cc := day_level_counts[md.level]
-        day_level_counts[md.level] = cc != undefined ? cc+1 : 1
-
-        if nlmd != undefined || i+1 == len(logs) {
-            if i+1 == len(logs) {
-                nlmd = md
-            }
-            if nlmd.time == undefined { nlmd.time = md.time }
-            next_log_time := times.parse(times.format_ansic, nlmd.time)
-            next_month_day := times.time_day(next_log_time)
-            if month_day != next_month_day || i+1 == len(logs) {
-                fmt.println("DAY: " + md.time + ", LEVELS: " + day_level_counts)
-                day_level_counts = {}
-            }
+        if last_date_format != undefined && date != last_date_format {
+            fmt.println(last_date_format, ": ", day_level_counts[last_date_format])
         }
+
+        if i == len(logs)-1 {
+            fmt.println(date, ": ", day_level_counts[date])
+        }
+
+        last_date_format = date != undefined ? date : last_date_format
     }
 }
