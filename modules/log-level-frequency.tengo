@@ -7,6 +7,10 @@ DVK_MODULE_CMD_ALIAS := "llf" // this is a required option "param"
 DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
 
+render_chart := func(data) {
+    fmt.println(data)
+}
+
 // metadata object:
 // md.time
 // md.level
@@ -14,37 +18,36 @@ DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been 
 // md.log_text
 
 main := func(logs) {
-    last_found_time := undefined
-    last_found_level := undefined
+    all_counts := []
+    level_counts := {}
+
+    last_time := undefined
     last_date_format := undefined
-    day_level_counts := {}
     for i := 0; i < len(logs); i++ {
         l := logs[i]
-        md := metadata(l)
+        lmd := metadata(l)
 
-        last_found_time = md.time != undefined ? md.time : last_found_time
-        last_found_level = md.level != undefined ? md.level : last_found_level
-        md.time = md.time == undefined ? last_found_time : md.time
-        md.level = last_found_level
+        if lmd.time == undefined || lmd.level == undefined { continue }
 
-        date := times.parse(times.format_ansic, md.time)
-        if date == undefined { continue }
-        date = times.time_format(date, "02Jan2006")
-
-        dlc := day_level_counts[date]
-        day_level_counts[date] = day_level_counts[date] == undefined ? {} : dlc
-        cc := day_level_counts[date][md.level]
-        cc = cc == undefined ? 1 : cc + 1
-        day_level_counts[date][md.level] = cc
-
-        if last_date_format != undefined && date != last_date_format {
-            fmt.println(last_date_format, ": ", day_level_counts[last_date_format])
+        time := times.parse(times.format_ansic, lmd.time)
+        date_format := times.time_format(time, "02Jan2006")
+        if last_date_format != undefined && last_date_format != date_format {
+            level_counts.date = last_time
+            all_counts = append(all_counts, level_counts)
+            level_counts = {}
         }
 
         if i == len(logs)-1 {
-            fmt.println(date, ": ", day_level_counts[date])
+            level_counts.date = time
+            all_counts = append(all_counts, level_counts)
         }
 
-        last_date_format = date != undefined ? date : last_date_format
+        lc := level_counts[lmd.level]
+        level_counts[lmd.level] = lc == undefined ? 1 : lc + 1
+
+        last_time = time
+        last_date_format = date_format
     }
+
+    render_chart(all_counts)
 }
