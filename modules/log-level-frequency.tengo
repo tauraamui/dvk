@@ -7,21 +7,26 @@ DVK_MODULE_CMD_ALIAS := "llf" // this is a required option "param"
 DVK_SEEK_MIN := 0 // this is an optional param, default value is 0
 DVK_SEEK_MAX := 100000 // this is an optional param, default value has not been decided yet
 
-num_of_c_per_bar := func(entries, key) {
+calc_max_rep_chars := func(entries, key) {
     highest_count := 0
     for e in entries {
-        if ec := e.counts[key]; ec > highest_count { highest_count = ec }
+        ec := e.counts[key]
+        if ec == undefined { continue }
+        if ec > highest_count { highest_count = ec }
     }
-    return highest_count / 100
+    return highest_count
 }
 
-render_chart := func(data) {
-    cpb := num_of_c_per_bar(data.entries, "error")
+render_chart := func(data, log_level) {
+    max := calc_max_rep_chars(data.entries, log_level)
     for e in data.entries {
-        fmt.print(e.date, ": errors: ")
-        num_of_bars := e.counts["error"] / cpb
-        for i := 0; i < num_of_bars; i++ {
-            fmt.print("=")
+        fmt.print(e.date, ": " + log_level + ": |")
+        if max == 0 { continue }
+        log_counts := e.counts[log_level]
+        if log_counts != undefined {
+            for i := 0; i < (float(log_counts) / float(max)) * 50; i++ {
+                fmt.print("=")
+            }
         }
         fmt.println("")
     }
@@ -33,7 +38,7 @@ render_chart := func(data) {
 // md.full_log
 // md.log_text
 
-main := func(logs) {
+main := func(logs, duration, log_level) {
     data := {
         num_months: 0,
         num_days: 0,
@@ -62,7 +67,7 @@ main := func(logs) {
         entry.month = date_month
         entry.year = date_year
 
-        if last_date_month != undefined && last_date_month != date_month {
+        if duration == "month" && (last_date_month != undefined && last_date_month != date_month) || duration == "day" && (last_date_day != undefined && last_date_day != date_day) {
             entry.date = last_time
             data.entries = append(data.entries, entry)
             entry = { counts: {} }
@@ -81,5 +86,5 @@ main := func(logs) {
         last_date_month = date_month
     }
 
-    render_chart(data)
+    render_chart(data, log_level)
 }
