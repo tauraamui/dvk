@@ -73,8 +73,6 @@ render_matrix_bar_graph := func(data) {
         fmt.printf("%s (%d)\n", kv.key, kv.value)
     }
 
-    // render top bar header
-    for i := 0; i < header_size; i++ { fmt.print("-"); if i == header_size-1 { fmt.println("") } }
     // final data output render
     for e in data.entries {
         fmt.print(e.date)
