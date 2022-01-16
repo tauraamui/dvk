@@ -45,8 +45,8 @@ render_matrix_bar_graph := func(data) {
     if len(data.entries) == 0 { return }
     length_of_date := len(string(data.entries[0].date))
 
-    header_padding := 3
-    header_size := length_of_date+header_padding;
+    header_padding_size := 3
+    header_size := length_of_date+header_padding_size;
     line_prefix_padding := ""
     for i := 0; i < header_size; i++ { line_prefix_padding += " " }
 
@@ -65,33 +65,25 @@ render_matrix_bar_graph := func(data) {
         fmt.print(line_prefix_padding)
         for j := 0; j < i; j++ {
             fmt.print("|")
-            if i == max_counts { fmt.print("\\  "); continue }
-            fmt.print("   ")
+            if i == max_counts { fmt.print("\\ "); continue }
+            fmt.print("  ")
         }
         if i == max_counts { fmt.println(""); continue }
         kv := all_levels_w_counts_arr[i]
         fmt.printf("%s (%d)\n", kv.key, kv.value)
     }
-    // column_index := 0
-    // ind := 0
-    // ind_target := len(all_levels_total_counts)
-    // for ll, lc in all_levels_total_counts {
-    //     fmt.print(line_prefix_padding)
-    //     for i := 0; i < column_index; i++ {
-    //         fmt.print("|")
-    //         if ind == ind_target-1 { fmt.print("\\ "); continue }
-    //         fmt.print("   ")
-    //     }
-    //     fmt.printf("%s (%d)\n", ll, lc)
-    //     column_index++
-    //     ind++
-    // }
 
     // render top bar header
     for i := 0; i < header_size; i++ { fmt.print("-"); if i == header_size-1 { fmt.println("") } }
     // final data output render
     for e in data.entries {
-        fmt.println(e.date)
+        fmt.print(e.date)
+        fmt.print(line_prefix_padding[:header_padding_size])
+        for i := 0; i < max_counts; i++ {
+            fmt.print("00")
+            if i+1 < max_counts { fmt.print(" ") }
+        }
+        fmt.println("")
     }
 }
 
