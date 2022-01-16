@@ -18,6 +18,7 @@ calc_max_rep_chars := func(entries, key) {
 }
 
 render_1Dbar_graph := func(data, log_level) {
+    if log_level == "" { return error("must specify specific log level to measure") }
     max := calc_max_rep_chars(data.entries, log_level)
     for e in data.entries {
         fmt.print(e.date, ": " + log_level + ": |")
@@ -85,13 +86,24 @@ render_matrix_bar_graph := func(data) {
     }
 }
 
+render := func(data, log_level, view) {
+    if view == "" { return error("must specify render view") }
+    if view == "matrix" {
+        return render_matrix_bar_graph(data)
+    }
+
+    if view != "bar" { return error(fmt.printf("unknown render view: %s\n", view)) }
+
+    return render_1Dbar_graph(data, log_level)
+}
+
 // metadata object:
 // md.time
 // md.level
 // md.full_log
 // md.log_text
 
-main := func(logs, duration, log_level) {
+main := func(logs, duration, log_level, render_view) {
     data := {
         num_months: 0,
         num_days: 0,
@@ -139,5 +151,7 @@ main := func(logs, duration, log_level) {
         last_date_month = date_month
     }
 
-    render_matrix_bar_graph(data)
+    if err := render(data, log_level, render_view); is_error(err) {
+        fmt.println(err)
+    }
 }
