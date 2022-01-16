@@ -32,6 +32,69 @@ render_1Dbar_graph := func(data, log_level) {
     }
 }
 
+map_to_array := func(m) {
+    arr := []
+    // map iteration
+    for key, value in m {
+        arr = append(arr, {key: key, value: value})  // builtin function 'append'
+    }
+    return arr
+}
+
+render_matrix_bar_graph := func(data) {
+    if len(data.entries) == 0 { return }
+    length_of_date := len(string(data.entries[0].date))
+
+    header_padding := 3
+    header_size := length_of_date+header_padding;
+    line_prefix_padding := ""
+    for i := 0; i < header_size; i++ { line_prefix_padding += " " }
+
+    // acquire all different log levels
+    all_levels_total_counts := {}
+    for e in data.entries {
+        for ll, lc in e.counts {
+            cc := all_levels_total_counts[ll]
+            all_levels_total_counts[ll] = cc == undefined ? lc : cc + lc
+        }
+    }
+
+    all_levels_w_counts_arr := map_to_array(all_levels_total_counts)
+    max_counts := len(all_levels_w_counts_arr)
+    for i := 0; i < max_counts+1; i++ {
+        fmt.print(line_prefix_padding)
+        for j := 0; j < i; j++ {
+            fmt.print("|")
+            if i == max_counts { fmt.print("\\  "); continue }
+            fmt.print("   ")
+        }
+        if i == max_counts { fmt.println(""); continue }
+        kv := all_levels_w_counts_arr[i]
+        fmt.printf("%s (%d)\n", kv.key, kv.value)
+    }
+    // column_index := 0
+    // ind := 0
+    // ind_target := len(all_levels_total_counts)
+    // for ll, lc in all_levels_total_counts {
+    //     fmt.print(line_prefix_padding)
+    //     for i := 0; i < column_index; i++ {
+    //         fmt.print("|")
+    //         if ind == ind_target-1 { fmt.print("\\ "); continue }
+    //         fmt.print("   ")
+    //     }
+    //     fmt.printf("%s (%d)\n", ll, lc)
+    //     column_index++
+    //     ind++
+    // }
+
+    // render top bar header
+    for i := 0; i < header_size; i++ { fmt.print("-"); if i == header_size-1 { fmt.println("") } }
+    // final data output render
+    for e in data.entries {
+        fmt.println(e.date)
+    }
+}
+
 // metadata object:
 // md.time
 // md.level
@@ -86,5 +149,5 @@ main := func(logs, duration, log_level) {
         last_date_month = date_month
     }
 
-    render_1Dbar_graph(data, log_level)
+    render_matrix_bar_graph(data)
 }
